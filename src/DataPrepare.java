@@ -8,27 +8,38 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import javax.imageio.ImageIO;
 
 
 public class DataPrepare {
-    private static final String FOLDER_NAME = "icons";
+    private static final String FOLDER_NAME = "characters_training";
     private static final String EXTENSION_NAME = ".png";
-    private static final String RELATION = "ICONS";
+    private static final String RELATION = "CHINESE_CHARACTERS";
     private static final String ATTRIBUTE_NAME = "pixel";
-    private static final String TRAINING_FILENAME = "icons_training.arff";
-    private static final String TESTING_FILENAME = "icons_testing.arff";
+    private static final String TRAINING_FILENAME = "characters_training.arff";
+    private static final String TESTING_FILENAME = "characters_testing.arff";
     private static final ArrayList<File> FILES = new ArrayList<>(Arrays.asList(get_files()));
+    private static final HashSet<String> CLASS_NAME = get_class_name();
     
     private static PrintWriter fo;
-
+    
     public static void main(String[] args) {
 	try {
 	    generate_training_file();
 	} catch (FileNotFoundException ex) {
 	    
 	}
+    }
+    
+    private static HashSet<String> get_class_name() {
+	HashSet<String> class_names = new HashSet<>();
+	Iterator it = FILES.iterator();
+	while (it.hasNext()) {
+	    class_names.add(((File)it.next()).getName().split("\\.")[0].toUpperCase());
+	}
+	return class_names;
     }
     
     private static File[] get_files() {
@@ -49,8 +60,9 @@ public class DataPrepare {
 	    }
 	}
 	fo.print("@ATTRIBUTE class {");
-	for(int i = 0; i < FILES.size(); i++) {
-	    fo.print(FILES.get(i).getName().toUpperCase().replace(".PNG", "") + ((i==FILES.size()-1)?"":",") );
+	Iterator it = CLASS_NAME.iterator();
+	while (it.hasNext()) {
+	    fo.print(it.next() + (it.hasNext()?",":""));
 	}
 	fo.println("}");
 	fo.println("@DATA");
@@ -75,7 +87,7 @@ public class DataPrepare {
 			fo.print(((rgb[0]+rgb[1]+rgb[2])/3<128?"1":"0") + ",");
 		    }
 		}
-		fo.println(thisFile.getName().toUpperCase().replace(".PNG", ""));
+		fo.println(thisFile.getName().split("\\.")[0].toUpperCase());
 	    } catch (IOException ex) {
 	    }
 	    fo.flush();
