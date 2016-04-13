@@ -24,7 +24,7 @@ public class DataPrepare {
     private static final String RELATION = "CHINESE_CHARACTERS";
     private static final String ATTRIBUTE_NAME = "pixel";
     private static final String TRAINING_FILENAME = "characters_training.arff";
-    private static final String TESTING_FILENAME_PREFIX = "characters_testing";
+    private static final String TESTING_FILENAME_PREFIX = "characters_testing_";
     private static final ArrayList<File> FILES = new ArrayList<>();
     private static final HashSet<String> CLASS_NAME = new HashSet<>();
     
@@ -32,11 +32,12 @@ public class DataPrepare {
     
     public static void main(String[] args) {
 	generate_noise(3);
-//	try {
-//	    generate_training_file();
-//	} catch (FileNotFoundException ex) {
-//	    
-//	}
+	try {
+	    generate_training_file();
+	    generate_testing_file(4);
+	} catch (FileNotFoundException ex) {
+	    
+	}
     }
     
     private static HashSet<String> get_class_name() {
@@ -105,8 +106,38 @@ public class DataPrepare {
 	FILES.clear();
     }
     
-    private static void generate_testing_file() throws FileNotFoundException {
-	
+    private static void generate_testing_file(int numOfTypes) throws FileNotFoundException {
+	FILES.addAll(Arrays.asList(get_files(FOLDER_NAME_TESTING)));
+	DecimalFormat df = new DecimalFormat("00");
+	for(int i = 0; i < numOfTypes; i++) {
+	    fo = new PrintWriter(TESTING_FILENAME_PREFIX + df.format(i+1) + ".arff");
+	    print_meta_info();;
+	    Iterator it = FILES.iterator();
+	    while (it.hasNext()) {
+		try {
+		    File thisFile = (File)it.next();
+		    if (thisFile.getName().split("\\.")[1] != df.format(i+1)) {
+			continue;
+		    }
+		    BufferedImage img = ImageIO.read(thisFile);
+		    for(int j = 0; j < 64; j++) {
+			for(int k = 0; k < 64; k++) {
+			    int pixel = img.getRGB(k, j);
+			    int[] rgb = new int[3];
+			    rgb[0] = (pixel & 0xff0000) >> 16;
+			    rgb[1] = (pixel & 0xff00) >> 8;
+			    rgb[2] = (pixel & 0xff);
+			    fo.print(((rgb[0]+rgb[1]+rgb[2])/3<128?"1":"0") + ",");
+			}
+		    }
+		    fo.println(thisFile.getName().split("\\.")[0].toUpperCase());
+		} catch (IOException ex) {
+		}
+		fo.flush();
+	    }
+	    fo.close();
+	}
+	FILES.clear();
     }
     
     private static void generate_noise(int numOfChanges) {
