@@ -1,4 +1,7 @@
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -10,27 +13,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 import javax.imageio.ImageIO;
 
 
 public class DataPrepare {
-    private static final String FOLDER_NAME = "characters_training";
+    private static final String FOLDER_NAME_TRAINING = "characters_training";
+    private static final String FOLDER_NAME_TESTING = "characters_testing";
     private static final String EXTENSION_NAME = ".png";
     private static final String RELATION = "CHINESE_CHARACTERS";
     private static final String ATTRIBUTE_NAME = "pixel";
     private static final String TRAINING_FILENAME = "characters_training.arff";
-    private static final String TESTING_FILENAME = "characters_testing.arff";
-    private static final ArrayList<File> FILES = new ArrayList<>(Arrays.asList(get_files()));
-    private static final HashSet<String> CLASS_NAME = get_class_name();
+    private static final String TESTING_FILENAME_PREFIX = "characters_testing";
+    private static final ArrayList<File> FILES = new ArrayList<>();
+    private static final HashSet<String> CLASS_NAME = new HashSet<>();
     
     private static PrintWriter fo;
     
     public static void main(String[] args) {
-	try {
-	    generate_training_file();
-	} catch (FileNotFoundException ex) {
-	    
-	}
+	generate_noise(3);
+//	try {
+//	    generate_training_file();
+//	} catch (FileNotFoundException ex) {
+//	    
+//	}
     }
     
     private static HashSet<String> get_class_name() {
@@ -42,8 +48,8 @@ public class DataPrepare {
 	return class_names;
     }
     
-    private static File[] get_files() {
-	return (new File(FOLDER_NAME)).listFiles(new FileFilter() {
+    private static File[] get_files(String folder_name) {
+	return (new File(folder_name)).listFiles(new FileFilter() {
 	    @Override
 	    public boolean accept(File filename) {
 		return filename.getName().toLowerCase().endsWith(EXTENSION_NAME);
@@ -52,6 +58,7 @@ public class DataPrepare {
     }
     
     private static void print_meta_info() {
+	CLASS_NAME.addAll(get_class_name());
 	fo.println("@RELATION " + RELATION);
 	DecimalFormat df = new DecimalFormat("00");
 	for(int i = 0; i < 64; i++) {
@@ -67,9 +74,11 @@ public class DataPrepare {
 	fo.println("}");
 	fo.println("@DATA");
 	fo.flush();
+	CLASS_NAME.clear();
     }
     
     private static void generate_training_file() throws FileNotFoundException {
+	FILES.addAll(Arrays.asList(get_files(FOLDER_NAME_TRAINING)));
 	fo = new PrintWriter(TRAINING_FILENAME);
 	print_meta_info();
 	Iterator it = FILES.iterator();
@@ -93,9 +102,33 @@ public class DataPrepare {
 	    fo.flush();
 	}
 	fo.close();
+	FILES.clear();
     }
     
-    private static void generate_testing_file(int numOfChanges) {
+    private static void generate_testing_file() throws FileNotFoundException {
 	
+    }
+    
+    private static void generate_noise(int numOfChanges) {
+	FILES.addAll(Arrays.asList(get_files(FOLDER_NAME_TESTING)));
+	Iterator it = FILES.iterator();
+	DecimalFormat df = new DecimalFormat("00");
+	Random rand = new Random();
+	while (it.hasNext()) {
+	    try {
+		File thisFile = (File)it.next();
+		BufferedImage originImg = ImageIO.read(thisFile);
+		BufferedImage alteredImage = originImg.getSubimage(0, 0, originImg.getWidth(), originImg.getHeight());
+		for(int i = 0; i < numOfChanges; i++) {
+		    Graphics2D g = alteredImage.createGraphics();
+		    g.setColor(Color.black);
+		    g.drawLine(rand.nextInt(64), rand.nextInt(64), rand.nextInt(64), rand.nextInt(64));
+		    String[] thisFileName = thisFile.getName().split("\\.");
+		    File newFile = new File(FOLDER_NAME_TESTING + "/" + thisFileName[0] + "." + df.format(i+2) + EXTENSION_NAME);
+		    ImageIO.write(alteredImage, "png", newFile);
+		}
+	    } catch (IOException ex) {
+	    }
+	}
     }
 }
