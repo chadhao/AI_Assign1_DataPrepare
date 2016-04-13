@@ -110,12 +110,12 @@ public class DataPrepare {
 	DecimalFormat df = new DecimalFormat("00");
 	for(int i = 0; i < numOfTypes; i++) {
 	    fo = new PrintWriter(TESTING_FILENAME_PREFIX + df.format(i+1) + ".arff");
-	    print_meta_info();;
+	    print_meta_info();
 	    Iterator it = FILES.iterator();
 	    while (it.hasNext()) {
 		try {
 		    File thisFile = (File)it.next();
-		    if (thisFile.getName().split("\\.")[1] != df.format(i+1)) {
+		    if (!thisFile.getName().split("\\.")[1].equals(df.format(i+1))) {
 			continue;
 		    }
 		    BufferedImage img = ImageIO.read(thisFile);
@@ -160,5 +160,6 @@ public class DataPrepare {
 	    } catch (IOException ex) {
 	    }
 	}
+	FILES.clear();
     }
 }
