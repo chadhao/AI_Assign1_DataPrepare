@@ -30,10 +30,10 @@ public class DataPrepare {
     private static PrintWriter fo;
     
     public static void main(String[] args) {
-	generate_noise(3);
+	generate_noise(5);
 	try {
 	    generate_training_file();
-	    generate_testing_file(4);
+	    generate_testing_file(6);
 	} catch (FileNotFoundException ex) {
 	    
 	}
@@ -152,6 +152,10 @@ public class DataPrepare {
 		for(int i = 0; i < numOfChanges; i++) {
 		    Graphics2D g = alteredImage.createGraphics();
 		    g.setColor(Color.black);
+		    g.fillOval(rand.nextInt(55), rand.nextInt(55), rand.nextInt(30), rand.nextInt(30));
+		    g.drawOval(rand.nextInt(55), rand.nextInt(55), rand.nextInt(30), rand.nextInt(30));
+		    g.fillRect(rand.nextInt(55), rand.nextInt(55), rand.nextInt(30), rand.nextInt(30));
+		    g.drawRect(rand.nextInt(55), rand.nextInt(55), rand.nextInt(30), rand.nextInt(30));
 		    g.drawLine(rand.nextInt(64), rand.nextInt(64), rand.nextInt(64), rand.nextInt(64));
 		    String[] thisFileName = thisFile.getName().split("\\.");
 		    File newFile = new File(FOLDER_NAME_TESTING + "/" + thisFileName[0] + "." + df.format(i+2) + EXTENSION_NAME);
